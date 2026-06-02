@@ -246,7 +246,7 @@ private fun SharedTransitionScope.PlantSkyAccessory(
                     enter = EnterTransition.None,
                     exit = ExitTransition.None,
                     animatedVisibilityScope = animatedVisibilityScope,
-                    resizeMode = SharedTransitionScope.ResizeMode.ScaleToBounds()
+                    resizeMode = SharedTransitionScope.ResizeMode.scaleToBounds()
                 )
             )
         }
