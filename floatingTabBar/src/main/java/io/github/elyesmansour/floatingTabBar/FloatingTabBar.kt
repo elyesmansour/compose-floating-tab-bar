@@ -23,10 +23,15 @@ import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.IntrinsicSize
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.aspectRatio
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.wrapContentWidth
 import androidx.compose.foundation.shape.CircleShape
@@ -55,8 +60,6 @@ import androidx.compose.ui.input.nestedscroll.NestedScrollSource
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
-import androidx.constraintlayout.compose.ConstraintLayout
-import androidx.constraintlayout.compose.Dimension
 
 
 /**
@@ -357,10 +360,17 @@ private fun SharedTransitionScope.InlineBar(
     val standaloneTab = scope.standaloneTab
     val hasInlineTab = inlineTab != null
     val hasStandaloneTab = standaloneTab != null
-    
-    ConstraintLayout(Modifier.fillMaxWidth()) {
-        val (tabGroupRef, accessoryRef, standaloneTabRef) = createRefs()
 
+    // IntrinsicSize.Min makes the Row only as tall as its tallest child's intrinsic height,
+    // which lets the standalone tab (fillMaxHeight + aspectRatio 1:1) become a square sized to
+    // the tab group's height, and lets the accessory fill that same height via fillMaxHeight.
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .height(IntrinsicSize.Min),
+        horizontalArrangement = Arrangement.spacedBy(sizes.componentSpacing),
+        verticalAlignment = Alignment.CenterVertically
+    ) {
         if (hasInlineTab) {
             InlineTab(
                 inlineTab = inlineTab,
@@ -371,10 +381,7 @@ private fun SharedTransitionScope.InlineBar(
                 elevations = elevations,
                 animatedVisibilityScope = animatedVisibilityScope,
                 tabBarContentModifier = tabBarContentModifier,
-                modifier = Modifier.constrainAs(tabGroupRef) {
-                    start.linkTo(parent.start)
-                    centerVerticallyTo(parent)
-                }
+                modifier = Modifier
             )
         }
 
@@ -386,33 +393,19 @@ private fun SharedTransitionScope.InlineBar(
                 colors = colors,
                 elevations = elevations,
                 animatedVisibilityScope = animatedVisibilityScope,
-                modifier = Modifier.constrainAs(accessoryRef) {
-                    width = Dimension.fillToConstraints
-                    height = Dimension.fillToConstraints
-                    centerVerticallyTo(parent)
-                    when {
-                        hasInlineTab && hasStandaloneTab -> {
-                            start.linkTo(tabGroupRef.end, sizes.componentSpacing)
-                            end.linkTo(standaloneTabRef.start, sizes.componentSpacing)
-                        }
-                        hasInlineTab -> {
-                            start.linkTo(tabGroupRef.end, sizes.componentSpacing)
-                            end.linkTo(parent.end)
-                        }
-                        hasStandaloneTab -> {
-                            start.linkTo(parent.start)
-                            end.linkTo(standaloneTabRef.start, sizes.componentSpacing)
-                        }
-                        else -> {
-                            start.linkTo(parent.start)
-                            end.linkTo(parent.end)
-                        }
-                    }
-                }
+                modifier = Modifier
+                    .weight(1f)
+                    .fillMaxHeight()
             )
         }
 
         if (hasStandaloneTab) {
+            // The accessory's weight already consumes the slack and pushes the standalone tab to
+            // the end. Without an accessory, a flexible spacer pins it to the end.
+            if (accessory == null) {
+                Spacer(Modifier.weight(1f))
+            }
+
             InlineStandaloneTab(
                 standaloneTab = standaloneTab,
                 shapes = shapes,
@@ -420,13 +413,15 @@ private fun SharedTransitionScope.InlineBar(
                 elevations = elevations,
                 animatedVisibilityScope = animatedVisibilityScope,
                 tabBarContentModifier = tabBarContentModifier,
-                modifier = Modifier.constrainAs(standaloneTabRef) {
-                    width = Dimension.ratio("1:1")
-                    end.linkTo(parent.end)
-                    if (hasInlineTab) {
-                        height = Dimension.fillToConstraints
-                        centerVerticallyTo(tabGroupRef)
-                    }
+                // When there is no tab group to match height with, the square would collapse to the
+                // bare icon size. Apply the inline tab content padding so it stays a reasonable size.
+                contentPadding = if (hasInlineTab) null else sizes.tabInlineContentPadding,
+                modifier = if (hasInlineTab) {
+                    Modifier
+                        .fillMaxHeight()
+                        .aspectRatio(1f)
+                } else {
+                    Modifier.aspectRatio(1f)
                 }
             )
         }
@@ -498,7 +493,8 @@ private fun SharedTransitionScope.InlineStandaloneTab(
     elevations: FloatingTabBarElevations,
     animatedVisibilityScope: AnimatedVisibilityScope,
     modifier: Modifier,
-    tabBarContentModifier: Modifier
+    tabBarContentModifier: Modifier,
+    contentPadding: PaddingValues?
 ) {
     Tab(
         icon = standaloneTab.icon,
@@ -526,6 +522,7 @@ private fun SharedTransitionScope.InlineStandaloneTab(
                 indication = standaloneTab.indication?.invoke(),
                 interactionSource = remember { MutableInteractionSource() }
             )
+            .then(if (contentPadding != null) Modifier.padding(contentPadding) else Modifier)
     )
 }
 
@@ -588,9 +585,10 @@ private fun SharedTransitionScope.ExpandedBar(
     val hasStandaloneTab = standaloneTab != null
     val hasTabGroup = scope.tabs.isNotEmpty()
 
-    ConstraintLayout(Modifier.fillMaxWidth()) {
-        val (accessoryRef, tabGroupRef, standaloneTabRef) = createRefs()
-        
+    Column(
+        modifier = Modifier.fillMaxWidth(),
+        verticalArrangement = Arrangement.spacedBy(sizes.componentSpacing)
+    ) {
         if (accessory != null) {
             ExpandedAccessory(
                 accessory = accessory,
@@ -599,61 +597,65 @@ private fun SharedTransitionScope.ExpandedBar(
                 colors = colors,
                 elevations = elevations,
                 animatedVisibilityScope = animatedVisibilityScope,
-                modifier = Modifier.constrainAs(accessoryRef) {
-                    start.linkTo(parent.start)
-                    end.linkTo(parent.end)
-                    top.linkTo(parent.top)
-                }
+                modifier = Modifier.fillMaxWidth()
             )
         }
 
-        if (hasTabGroup) {
-            ExpandedTabs(
-                scope = scope,
-                selectedTabKey = selectedTabKey,
-                shapes = shapes,
-                sizes = sizes,
-                colors = colors,
-                elevations = elevations,
-                animatedVisibilityScope = animatedVisibilityScope,
-                tabBarContentModifier = tabBarContentModifier,
-                modifier = Modifier
-                    .constrainAs(tabGroupRef) {
-                        width = Dimension.fillToConstraints
-                        start.linkTo(parent.start)
-                        if (hasStandaloneTab) {
-                            end.linkTo(standaloneTabRef.start, margin = sizes.componentSpacing)
-                        } else {
-                            end.linkTo(parent.end)
-                        }
-                        if (accessory != null) {
-                            top.linkTo(accessoryRef.bottom, margin = sizes.componentSpacing)
-                        }
-                        horizontalBias = 0f
-                    }
-                    .wrapContentWidth(align = Alignment.Start)
-            )
-        }
+        // IntrinsicSize.Min makes the Row only as tall as its tallest child's intrinsic height,
+        // letting the standalone tab (fillMaxHeight + aspectRatio 1:1) become a square sized to
+        // the tab group's height. The tab group takes weight(1f) but wraps its own content, so it
+        // only occupies what it needs while the standalone tab stays pinned to the end.
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(IntrinsicSize.Min),
+            // With a tab group present, its weight(1f) pushes the standalone tab to the end and
+            // spacedBy provides the gap. Without one, End alignment pins the lone standalone tab
+            // to the end.
+            horizontalArrangement = if (hasTabGroup) {
+                Arrangement.spacedBy(sizes.componentSpacing)
+            } else {
+                Arrangement.End
+            },
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            if (hasTabGroup) {
+                ExpandedTabs(
+                    scope = scope,
+                    selectedTabKey = selectedTabKey,
+                    shapes = shapes,
+                    sizes = sizes,
+                    colors = colors,
+                    elevations = elevations,
+                    animatedVisibilityScope = animatedVisibilityScope,
+                    tabBarContentModifier = tabBarContentModifier,
+                    modifier = Modifier
+                        .weight(1f)
+                        .wrapContentWidth(align = Alignment.Start)
+                )
+            }
 
-        if (hasStandaloneTab) {
-            ExpandedStandaloneTab(
-                standaloneTab = standaloneTab,
-                shapes = shapes,
-                colors = colors,
-                elevations = elevations,
-                animatedVisibilityScope = animatedVisibilityScope,
-                tabBarContentModifier = tabBarContentModifier,
-                modifier = Modifier.constrainAs(standaloneTabRef) {
-                    width = Dimension.ratio("1:1")
-                    end.linkTo(parent.end)
-                    if (hasTabGroup) {
-                        height = Dimension.fillToConstraints
-                        centerVerticallyTo(tabGroupRef)
-                    } else if (accessory != null) {
-                        top.linkTo(accessoryRef.bottom, margin = sizes.componentSpacing)
+            if (hasStandaloneTab) {
+                ExpandedStandaloneTab(
+                    standaloneTab = standaloneTab,
+                    shapes = shapes,
+                    colors = colors,
+                    elevations = elevations,
+                    animatedVisibilityScope = animatedVisibilityScope,
+                    tabBarContentModifier = tabBarContentModifier,
+                    // When there is no tab group to match height with, the square would collapse to
+                    // the bare icon size. Apply the expanded tab content padding so it stays sized
+                    // like a tab would be.
+                    contentPadding = if (hasTabGroup) null else sizes.tabExpandedContentPadding,
+                    modifier = if (hasTabGroup) {
+                        Modifier
+                            .fillMaxHeight()
+                            .aspectRatio(1f)
+                    } else {
+                        Modifier.aspectRatio(1f)
                     }
-                }
-            )
+                )
+            }
         }
     }
 }
@@ -785,7 +787,8 @@ private fun SharedTransitionScope.ExpandedStandaloneTab(
     elevations: FloatingTabBarElevations,
     animatedVisibilityScope: AnimatedVisibilityScope,
     modifier: Modifier,
-    tabBarContentModifier: Modifier
+    tabBarContentModifier: Modifier,
+    contentPadding: PaddingValues?
 ) {
     Tab(
         icon = standaloneTab.icon,
@@ -813,6 +816,7 @@ private fun SharedTransitionScope.ExpandedStandaloneTab(
                 indication = standaloneTab.indication?.invoke(),
                 interactionSource = remember { MutableInteractionSource() }
             )
+            .then(if (contentPadding != null) Modifier.padding(contentPadding) else Modifier)
     )
 }
 

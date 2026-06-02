@@ -1,6 +1,5 @@
 [versions]
 agp = "8.11.1"
-constraintlayoutCompose = "1.1.1"
 haze = "1.6.7"
 kotlin = "2.1.0"
 coreKtx = "1.16.0"
@@ -11,7 +10,6 @@ vanniktechMavenPublish = "0.33.0"
 gradleupNmcp = "1.0.1"
 
 [libraries]
-androidx-constraintlayout-compose = { module = "androidx.constraintlayout:constraintlayout-compose", version.ref = "constraintlayoutCompose" }
 androidx-core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = "coreKtx" }
 androidx-lifecycle-runtime-ktx = { group = "androidx.lifecycle", name = "lifecycle-runtime-ktx", version.ref = "lifecycleRuntimeKtx" }
 androidx-activity-compose = { group = "androidx.activity", name = "activity-compose", version.ref = "activityCompose" }
