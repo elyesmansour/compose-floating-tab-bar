@@ -5,7 +5,14 @@
 .idea/
 .DS_Store
 /build
+**/build/
 /captures
 .externalNativeBuild
 .cxx
 local.properties
+
+# Xcode / iOS
+xcuserdata/
+*.xcworkspace/xcuserdata/
+iosApp/iosApp.xcodeproj/project.xcworkspace/
+DerivedData/
