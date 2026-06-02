@@ -44,7 +44,7 @@ kotlin {
             implementation(libs.androidx.lifecycle.runtime.compose)
 
             implementation(libs.haze)
-            implementation(libs.haze.materials)
+            implementation(libs.haze.blur)
         }
     }
 }

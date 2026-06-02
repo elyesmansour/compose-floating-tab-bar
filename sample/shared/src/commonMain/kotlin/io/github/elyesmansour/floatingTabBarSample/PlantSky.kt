@@ -41,10 +41,11 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import dev.chrisbanes.haze.HazeProgressive
 import dev.chrisbanes.haze.hazeEffect
 import dev.chrisbanes.haze.hazeSource
 import dev.chrisbanes.haze.rememberHazeState
+import dev.chrisbanes.haze.blur.HazeProgressive
+import dev.chrisbanes.haze.blur.blurEffect
 import io.github.elyesmansour.floatingTabBar.FloatingTabBar
 import io.github.elyesmansour.floatingTabBar.FloatingTabBarDefaults
 import io.github.elyesmansour.floatingTabBar.rememberFloatingTabBarScrollConnection
@@ -70,7 +71,11 @@ fun PlantSky() {
 
         val hazeState = rememberHazeState()
         val hazeEffectModifier = remember {
-            Modifier.hazeEffect(hazeState) { noiseFactor = 0f }
+            Modifier.hazeEffect(hazeState) {
+                blurEffect {
+                    noiseFactor = 0f
+                }
+            }
         }
 
         val leadingTabs = remember {
@@ -124,10 +129,12 @@ fun PlantSky() {
                     .then(
                         if (scrollConnection.isInline) {
                             Modifier.hazeEffect(hazeState) {
-                                noiseFactor = 0f
-                                progressive = HazeProgressive.verticalGradient(
-                                    startIntensity = 0.05f
-                                )
+                                blurEffect {
+                                    noiseFactor = 0f
+                                    progressive = HazeProgressive.verticalGradient(
+                                        startIntensity = 0.05f
+                                    )
+                                }
                             }
                         } else {
                             Modifier
