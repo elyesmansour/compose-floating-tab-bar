@@ -12,7 +12,7 @@ plugins {
 kotlin {
     android {
         namespace = "io.github.elyesmansour.floatingTabBar"
-        compileSdk = 36
+        compileSdk = 37
         minSdk = 21
 
         compilerOptions {

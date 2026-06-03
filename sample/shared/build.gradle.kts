@@ -10,7 +10,7 @@ plugins {
 kotlin {
     android {
         namespace = "io.github.elyesmansour.floatingTabBarSample.shared"
-        compileSdk = 36
+        compileSdk = 37
         minSdk = 26
 
         androidResources.enable = true
