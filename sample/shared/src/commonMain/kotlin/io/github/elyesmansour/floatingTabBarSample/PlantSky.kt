@@ -163,6 +163,10 @@ fun PlantSky() {
                             animatedVisibilityScope = animatedVisibilityScope
                         )
                     },
+                    colors = FloatingTabBarDefaults.colors(
+                        selectedTabBackgroundColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.15f),
+                        selectedStandaloneTabBackgroundColor = MaterialTheme.colorScheme.tertiary.copy(alpha = 0.15f)
+                    ),
                     sizes = FloatingTabBarDefaults.sizes(
                         tabExpandedContentPadding = PaddingValues(
                             vertical = 6.dp,
@@ -170,8 +174,12 @@ fun PlantSky() {
                         )
                     )
                 ) {
-                    val tabTint = @Composable { isSelected: Boolean ->
-                        if (isSelected) MaterialTheme.colorScheme.tertiary else MaterialTheme.colorScheme.onSurface
+                    val tabTint = @Composable { isSelected: Boolean, isStandalone: Boolean ->
+                        if (isSelected) {
+                            if (isStandalone) MaterialTheme.colorScheme.tertiary else MaterialTheme.colorScheme.primary
+                        } else {
+                            MaterialTheme.colorScheme.onSurface
+                        }
                     }
                     val indication = @Composable { ripple(color = MaterialTheme.colorScheme.tertiary) }
                     
@@ -181,14 +189,14 @@ fun PlantSky() {
                             title = {
                                 Text(
                                     text = tabItem.text,
-                                    color = tabTint(selectedTabKey == tabItem.key)
+                                    color = tabTint(selectedTabKey == tabItem.key, false)
                                 )
                             },
                             icon = {
                                 Icon(
                                     painter = painterResource(tabItem.icon),
                                     contentDescription = null,
-                                    tint = tabTint(selectedTabKey == tabItem.key)
+                                    tint = tabTint(selectedTabKey == tabItem.key, false)
                                 )
                             },
                             onClick = { selectedTabKey = tabItem.key },
@@ -202,7 +210,7 @@ fun PlantSky() {
                             Icon(
                                 painter = painterResource(trailingTab.icon),
                                 contentDescription = null,
-                                tint = tabTint(selectedTabKey == trailingTab.key)
+                                tint = tabTint(selectedTabKey == trailingTab.key, true)
                             )
                         },
                         onClick = { selectedTabKey = trailingTab.key },
