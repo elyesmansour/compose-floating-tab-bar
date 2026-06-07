@@ -21,4 +21,5 @@ dependencyResolutionManagement {
 
 rootProject.name = "floating-tab-bar-root"
 include(":floatingTabBar")
-include(":sample")
+include(":sample:shared")
+include(":sample:androidApp")
