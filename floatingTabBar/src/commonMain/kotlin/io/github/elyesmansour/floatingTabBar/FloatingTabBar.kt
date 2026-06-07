@@ -8,6 +8,7 @@ import androidx.compose.animation.EnterExitState
 import androidx.compose.animation.ExperimentalSharedTransitionApi
 import androidx.compose.animation.SharedTransitionLayout
 import androidx.compose.animation.SharedTransitionScope
+import androidx.compose.animation.animateColorAsState
 import androidx.compose.animation.animateContentSize
 import androidx.compose.animation.core.FastOutSlowInEasing
 import androidx.compose.animation.core.animateFloat
@@ -60,6 +61,7 @@ import androidx.compose.ui.input.nestedscroll.NestedScrollSource
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
+import io.github.elyesmansour.floatingTabBar.ExpandedStandaloneTab
 
 
 /**
@@ -637,6 +639,7 @@ private fun SharedTransitionScope.ExpandedBar(
 
             if (hasStandaloneTab) {
                 ExpandedStandaloneTab(
+                    selectedTabKey = selectedTabKey,
                     standaloneTab = standaloneTab,
                     shapes = shapes,
                     colors = colors,
@@ -735,6 +738,11 @@ private fun SharedTransitionScope.ExpandedTabs(
             .animateContentSize()
     ) {
         scope.tabs.forEach { tab ->
+            val isSelected = tab.key == selectedTabKey
+            val animatedBgColor by animateColorAsState(
+                targetValue = if (isSelected) colors.selectedTabBackgroundColor else Color.Transparent,
+                label = "tab_selected_bg"
+            )
             Tab(
                 icon = {
                     Box(
@@ -768,6 +776,10 @@ private fun SharedTransitionScope.ExpandedTabs(
                 modifier = Modifier
                     .skipToLookaheadSize()
                     .clip(shapes.tabShape)
+                    .background(
+                        color = animatedBgColor,
+                        shape = shapes.tabShape
+                    )
                     .clickable(
                         onClick = tab.onClick,
                         indication = tab.indication?.invoke(),
@@ -781,6 +793,7 @@ private fun SharedTransitionScope.ExpandedTabs(
 
 @Composable
 private fun SharedTransitionScope.ExpandedStandaloneTab(
+    selectedTabKey: Any?,
     standaloneTab: FloatingTabBarTab,
     shapes: FloatingTabBarShapes,
     colors: FloatingTabBarColors,
@@ -790,6 +803,11 @@ private fun SharedTransitionScope.ExpandedStandaloneTab(
     tabBarContentModifier: Modifier,
     contentPadding: PaddingValues?
 ) {
+    val isSelected = standaloneTab.key == selectedTabKey
+    val animatedBgColor by animateColorAsState(
+        targetValue = if (isSelected) colors.selectedStandaloneTabBackgroundColor else colors.backgroundColor,
+        label = "standalone_tab_selected_bg"
+    )
     Tab(
         icon = standaloneTab.icon,
         title = standaloneTab.title,
@@ -806,7 +824,7 @@ private fun SharedTransitionScope.ExpandedStandaloneTab(
                 elevation = elevations.expandedElevation
             )
             .background(
-                color = colors.backgroundColor,
+                color = animatedBgColor,
                 shape = shapes.standaloneTabShape
             )
             .clip(shapes.standaloneTabShape)
@@ -993,6 +1011,8 @@ private data class FloatingTabBarTab(
 data class FloatingTabBarColors(
     val backgroundColor: Color,
     val accessoryBackgroundColor: Color,
+    val selectedTabBackgroundColor: Color,
+    val selectedStandaloneTabBackgroundColor: Color,
 )
 
 /**
@@ -1036,14 +1056,20 @@ object FloatingTabBarDefaults {
      *
      * @param backgroundColor the color used for the tab bar background
      * @param accessoryBackgroundColor the color used for the accessory background
+     * @param selectedTabBackgroundColor the color used for the selected tab background in expanded state
+     * @param selectedStandaloneTabBackgroundColor the color used for the selected standalone tab background in expanded state
      */
     @Composable
     fun colors(
         backgroundColor: Color = MaterialTheme.colorScheme.surfaceContainerHigh,
         accessoryBackgroundColor: Color = MaterialTheme.colorScheme.surfaceContainerHigh,
+        selectedTabBackgroundColor: Color = Color.Transparent,
+        selectedStandaloneTabBackgroundColor: Color = Color.Transparent,
     ): FloatingTabBarColors = FloatingTabBarColors(
         backgroundColor = backgroundColor,
         accessoryBackgroundColor = accessoryBackgroundColor,
+        selectedTabBackgroundColor = selectedTabBackgroundColor,
+        selectedStandaloneTabBackgroundColor = selectedStandaloneTabBackgroundColor,
     )
 
     /**
