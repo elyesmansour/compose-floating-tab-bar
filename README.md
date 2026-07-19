@@ -37,7 +37,7 @@ Add the dependency to your `commonMain` source set in your `build.gradle.kts` fi
 kotlin {
     sourceSets {
         commonMain.dependencies {
-            implementation("io.github.elyesmansour:floatingTabBar:1.1.0")
+            implementation("io.github.elyesmansour:floatingTabBar:1.0.1")
         }
     }
 }
@@ -46,7 +46,7 @@ kotlin {
 Or for Android-only projects:
 
 ```kotlin
-implementation("io.github.elyesmansour:floatingTabBar:1.1.0")
+implementation("io.github.elyesmansour:floatingTabBar:1.0.1")
 ```
 
 And ensure Maven Central is listed as a repository in your `settings.gradle.kts` file:
